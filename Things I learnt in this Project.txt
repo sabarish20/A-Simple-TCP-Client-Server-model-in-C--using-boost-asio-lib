@@ -1,0 +1,60 @@
+Things I learnt in this Project 
+
+What is socket ?
+A socket can be thought of as an endpoint in a two-way communication channel. Socket routines create the communication channel, and the channel is used to send data between application programs either locally or over networks. Each socket within the network has a unique name associated with it called a socket descriptor—a fullword integer that designates a socket and allows application programs to refer to it when needed.
+Sockets are the “base” and so they provide the programming interface for these protocols to work on. Generally speaking, sockets are providing a way for two processes or programs to communicate over the network. Sockets provide sufficiency and transparency while causing almost no communication overhead.
+Sockets allow you to exchange information between processes on the same machine or across a network, distribute work to the most efficient machine, and they easily allow access to centralized data. Socket application program interfaces (APIs) are the network standard for TCP/IP.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Connection Establishment in TCP 
+
+The connection establishment works as follows:
+
+In the first step, the client sends the server a SYN package (SYN=synchronize) with a random sequence number. The sequence number is a fundamental tool to ensure the complete and correctly ordered transmission of packages.
+
+Once the server has received the SYN package, it accepts the connection by replying with a SYN-ACK package (ACK=acknowledgement) that contains the sequence number increased by one to indicate the correctly received synchronization request (the increased sequence number may also be called acknowledgement number). Additionally, it includes another (again random) sequence number to express the wish for a converse connection.
+
+The client receives the SYN-ACK package. It returns the so-called ACK package that contains its own sequence number as well as the server’s sequence number increased by one. Note how after this package both sequence numbers were increased one time by the opposite side to express a successful connection establishment.
+
+After the server receives the ACK package the connection is established. No actual payload data was exchanged until now.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Payload Exchange:
+
+The fourth package is the first package that contains payload data and is sent by the client to the server (typically containing the HTTP request). The two sequence numbers are unchanged. Let’s assume the payload has a length of 104 bytes.
+
+The server receives the package and returns the first payload-containing package itself. In the package he changes the client’s sequence number to 105 (+104 bytes) to indicate how much data he has already received. The server’s sequence number remains unchanged. Let’s assume the package has a size of 1200 bytes.
+
+The client receives the package with it’s sequence number set to 105. He now knows the server has already received 105 bytes of data. He builds the next package with payload data and changes the server’s sequence number to 1201 (+1200 bytes) and sends it.
+
+If the client does not need to send any more data and only wants to keep receiving data, it’s sequence number will remain unchanged while the server’s sequence number increases with every package.
+
+This process is executed until the client has received the complete payload data from the server.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Connection Tear-down :
+
+Once the client has acknowledged the last package sent by the server, it decides to terminate the connection. Therefore it sends the FIN package that doesn’t contain payload data (the client’s sequence number remains unchanged at 105 while the server’s sequence number equals the initial number + the sum of all the bytes the client received). Let’s assume the last server’s sequence number is 10004.
+
+The server accepts the termination and returns another package with the client’s sequence number increased by one (to 106). The server’s sequence number remains unchanged.
+
+The client ultimately finishes the connection by sending the final package containing it’s unchanged sequence number and the server’s sequence number increased by one (10005).
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Socket Descriptor - A Socket descriptor is an integer that represents an endpoint for communication between two processes over a network. It is a unique identifier that the operating system assigns to each socket to keep track of its state and manage its resources.In C and C++, socket descriptors are typically represented as integers, and they are used as parameters to system calls and library functions that manipulate sockets, such as connect(), accept(), read(), write(), and close().
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Connection-oriented Socket Workflow
+
+1) The socket() API creates an endpoint for communications and returns a socket descriptor that represents the endpoint.
+2) When an application has a socket descriptor, it can bind a unique name to the socket. Servers must bind a name to be accessible from the network.
+3) The listen() API indicates a willingness to accept client connection requests. When a listen() API is issued for a socket, that socket cannot actively initiate connection requests. The listen() API is issued after a socket is allocated with a socket() API and the bind() API binds a name to the socket. A listen() API must be issued before an accept() API is issued.
+4) The client application uses a connect() API on a stream socket to establish a connection to the server.
+5) The server application uses the accept() API to accept a client connection request. The server must issue the bind() and listen() APIs successfully before it can issue an accept() API.
+6) When a connection is established between stream sockets (between client and server), you can use any of the socket API data transfer APIs. Clients and servers have many data transfer APIs from which to choose, such as send(), recv(), read(), write(), and others.
+7) When a server or client wants to stop operations, it issues a close() API to release any system resources acquired by the socket.
